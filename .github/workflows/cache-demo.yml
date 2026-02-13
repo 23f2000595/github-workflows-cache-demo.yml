@@ -1,0 +1,40 @@
+cat > .github/workflows/cache-demo.yml << 'EOF'
+name: Cache Demo
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  cache-example:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Cache dependencies
+        id: cache-0f2d372
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: cache-0f2d372-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cache-0f2d372-${{ runner.os }}-node-
+      
+      - name: prime-cache-0f2d372
+        run: |
+          if [ "${{ steps.cache-0f2d372.outputs.cache-hit }}" == "true" ]; then
+            echo "✅ Cache HIT - Dependencies restored from cache"
+          else
+            echo "❌ Cache MISS - Installing dependencies and creating cache"
+            npm init -y
+            npm install lodash axios jest
+          fi
+EOF
